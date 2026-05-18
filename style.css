@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청소당번 뽀ㅃ기 웽앱 | Premium Duty Picker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background Canvas for Confetti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-wrapper">
+        <!-- Floating Nebulas (Background Deco) -->
+        <div class="nebula nebula-1"></div>
+        <div class="nebula nebula-2"></div>
+        <div class="nebula nebula-3"></div>
+
+        <!-- Header Area -->
+        <header class="app-header">
+            <div class="logo-badge">🧹 PREMIUM CLEANING SYSTEM</div>
+            <h1 class="gradient-title">청소당번 룰렛 뽑기</h1>
+            <p class="subtitle">1명부터 30명 중 공정하게 5명의 청소 당번을 선출합니다.</p>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            <!-- Sidebar: Candidate Manager -->
+            <section class="panel glass candidate-panel">
+                <div class="panel-header">
+                    <h2>🎯 대상자 관리 (1~30명)</h2>
+                    <div class="quick-actions">
+                        <button id="btn-select-all" class="text-btn">전체 선택</button>
+                        <button id="btn-deselect-all" class="text-btn">전체 해제</button>
+                        <button id="btn-reset-names" class="text-btn">이름 초기화</button>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <!-- Config Controls -->
+                    <div class="config-row">
+                        <div class="config-group">
+                            <label for="input-winner-count">선출할 당번 수 (명)</label>
+                            <div class="number-input-wrapper">
+                                <button type="button" class="num-btn" id="btn-dec">-</button>
+                                <input type="number" id="input-winner-count" min="1" max="15" value="5" readonly>
+                                <button type="button" class="num-btn" id="btn-inc">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Participant List Grid -->
+                    <div class="participant-grid" id="participant-list">
+                        <!-- Filled dynamically by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Center Panel: The Lottery Board -->
+            <section class="lottery-board">
+                <!-- Status Indicators -->
+                <div class="status-bar">
+                    <span class="active-count-badge">참가 대상: <strong id="active-count">30</strong>명</span>
+                    <!-- Sound Toggle -->
+                    <button id="btn-sound-toggle" class="sound-toggle active" aria-label="Toggle Sound">
+                        <svg class="icon-sound-on" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                        </svg>
+                        <svg class="icon-sound-off" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
+                            <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.43 14,18.7V20.77C15.38,20.44 16.63,19.78 17.7,18.9L20.73,21.93L22,20.66L4.27,3M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18.07,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.48,12.43 16.5,12.22 16.5,12Z" />
+                        </svg>
+                        <span>소리 켬</span>
+                    </</button>
+                </div>
+
+                <!-- Display slots where winners will be shown -->
+                <div class="slots-container" id="slots-container">
+                    <!-- Generated dynamically based on winner count, initially 5 -->
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="control-actions">
+                    <button id="btn-draw" class="primary-btn glow-btn">
+                        <span class="btn-ripple"></span>
+                        <span class="btn-text">🧹 당번 추첨 시작!</span>
+                    </button>
+                    <button id="btn-reset-draw" class="secondary-btn">초기화</button>
+                </div>
+            </section>
+
+            <!-- Bottom/Right Panel: History & Stats -->
+            <section class="panel glass history-panel">
+                <div class="panel-header">
+                    <h2>📋 추첨 히스토리</h2>
+                    <div class="quick-actions">
+                        <button id="btn-clear-history" class="text-btn danger-text">전체 삭제</button>
+                    </div>
+                </div>
+                <div class="panel-body history-body">
+                    <div class="history-list" id="history-list">
+                        <!-- History items filled by JS -->
+                        <div class="empty-state">
+                            <span class="empty-icon">⏳</span>
+                            <p>아직 진행된 추첨이 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 Premium Cleaning Roulette. All rights reserved. Designed for Visual Excellence.</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Main JavaScript File -->
+    <script src="app.js"></script>
+</body>
+</html>
