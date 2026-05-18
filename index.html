@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>교실 자리 바꾸기 시스템 | Classroom Seat Arranger</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=Single+Day&display=swap" rel="stylesheet">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="chalkboard-theme">
+    <!-- Background Canvas for Confetti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- App Header (Hidden on Print) -->
+        <header class="app-header">
+            <div class="header-logo">🏫 SMART CLASSROOM SYSTEM</div>
+            <h1 class="header-title">감성 교실 자리 바꾸기</h1>
+            <p class="header-subtitle">칠판과 책상 배치를 자유롭게 변경하고, 지정석 고정 및 드래그 스왑을 지원합니다.</p>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="workspace">
+            
+            <!-- Left Sidebar: Configuration Panel (Hidden on Print) -->
+            <section class="panel config-panel">
+                <div class="panel-header">
+                    <h2>⚙️ 교실 및 학생 설정</h2>
+                </div>
+                <div class="panel-body">
+                    <!-- Layout Grid Settings -->
+                    <div class="setting-group">
+                        <label class="setting-label">🏫 교실 배치 크기</label>
+                        <div class="grid-controls">
+                            <div class="control-item">
+                                <span>세로(행)</span>
+                                <div class="number-stepper">
+                                    <button type="button" class="step-btn" id="btn-row-dec">-</button>
+                                    <input type="number" id="input-rows" min="2" max="10" value="5" readonly>
+                                    <button type="button" class="step-btn" id="btn-row-inc">+</button>
+                                </div>
+                            </div>
+                            <div class="control-item">
+                                <span>가로(열)</span>
+                                <div class="number-stepper">
+                                    <button type="button" class="step-btn" id="btn-col-dec">-</button>
+                                    <input type="number" id="input-cols" min="2" max="10" value="6" readonly>
+                                    <button type="button" class="step-btn" id="btn-col-inc">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout Mode Guide -->
+                    <div class="setting-group">
+                        <label class="setting-label">🛠️ 자리 배치 모드</label>
+                        <div class="layout-modes">
+                            <button id="btn-mode-assign" class="mode-btn active">🧑‍🎓 배정 / 편집 모드</button>
+                            <button id="btn-mode-block" class="mode-btn">🧱 통로/빈자리 지정 모드</button>
+                        </div>
+                        <p class="mode-tip" id="mode-tip-text">책상 카드를 눌러 고정(Lock)하거나 배정 후 드래그하여 자리를 교환하세요.</p>
+                    </div>
+
+                    <!-- Students Name Input -->
+                    <div class="setting-group flex-fill">
+                        <div class="textarea-header">
+                            <label class="setting-label">🧑‍🎓 학생 명단 입력 (<span id="student-count">0</span>명)</label>
+                            <button id="btn-sample-names" class="text-btn">샘플 입력</button>
+                        </div>
+                        <textarea id="student-names-area" placeholder="학생 이름을 쉼표(,), 공백 또는 줄바꿈으로 입력해 주세요.&#10;예: 김철수, 이영희, 박민수, 최지우, 정우성..."></textarea>
+                    </div>
+
+                    <!-- Theme & Sound Options -->
+                    <div class="options-row">
+                        <div class="option-toggle-group">
+                            <label for="theme-select">🎨 비주얼 테마</label>
+                            <select id="theme-select">
+                                <option value="chalkboard">초록 칠판 (Chalkboard)</option>
+                                <option value="cyber">사이버 네온 (Cyber Glass)</option>
+                            </select>
+                        </div>
+                        
+                        <button id="btn-sound-toggle" class="sound-toggle active">
+                            <svg class="sound-on-icon" viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                            </svg>
+                            <svg class="sound-off-icon" viewBox="0 0 24 24" width="18" height="18" style="display: none;">
+                                <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.43 14,18.7V20.77C15.38,20.44 16.63,19.78 17.7,18.9L20.73,21.93L22,20.66L4.27,3M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18.07,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.48,12.43 16.5,12.22 16.5,12Z" />
+                            </svg>
+                            <span>소리 켬</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Area: The Interactive Classroom Chalkboard -->
+            <section class="classroom-board">
+                <!-- Board Wood Frame Container -->
+                <div class="chalkboard-frame">
+                    
+                    <!-- Teacher Pod & Blackboard Header -->
+                    <div class="blackboard-header">
+                        <div class="blackboard-speaker">📢 칠 판 (교탁 방향)</div>
+                        <div class="blackboard-info">
+                            <span class="info-tag">미배정 학생: <strong id="unassigned-count">0</strong>명</span>
+                            <span class="info-tag">남은 일반석: <strong id="vacant-count">0</strong>석</span>
+                        </div>
+                    </div>
+
+                    <!-- Classroom Desks Grid (Generated Dynamically) -->
+                    <div class="desks-grid" id="desks-grid-container">
+                        <!-- Dynamic CSS desks here -->
+                    </div>
+
+                </div>
+
+                <!-- Classroom Control Actions (Hidden on Print) -->
+                <div class="board-actions">
+                    <button id="btn-shuffle" class="primary-btn glow-btn">
+                        <span class="btn-ripple"></span>
+                        <span class="btn-text">🎲 랜덤 자리 섞기 시작!</span>
+                    </button>
+                    <button id="btn-clear-locks" class="secondary-btn">🔒 모든 고정석 해제</button>
+                    <button id="btn-export-text" class="secondary-btn">📋 텍스트 복사</button>
+                    <button id="btn-print" class="secondary-btn success-btn">🖨️ 자리 배치도 인쇄</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer (Hidden on Print) -->
+        <footer class="app-footer">
+            <p>&copy; 2026 Smart Classroom seating arranger. Designed with visual excellence and chalk aesthetic.</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast (Hidden on Print) -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Main JS file -->
+    <script src="app.js"></script>
+</body>
+</html>
