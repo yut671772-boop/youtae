@@ -1,128 +1,1065 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>청소당번 뽀ㅃ기 웽앱 | Premium Duty Picker</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Main Style Sheet -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <!-- Background Canvas for Confetti -->
-    <canvas id="confetti-canvas"></canvas>
+/* --- Base resets & Color variables --- */
+:root {
+    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: all 0.2s ease;
+    --border-radius-lg: 16px;
+    --border-radius-md: 10px;
+    --border-radius-sm: 6px;
+}
 
-    <div class="app-wrapper">
-        <!-- Floating Nebulas (Background Deco) -->
-        <div class="nebula nebula-1"></div>
-        <div class="nebula nebula-2"></div>
-        <div class="nebula nebula-3"></div>
+/* 1. Chalkboard Theme Variables */
+.chalkboard-theme {
+    --bg-primary: #15181b;
+    --bg-panel: rgba(30, 36, 44, 0.7);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --board-bg: radial-gradient(circle, #183321 0%, #0d1e13 100%);
+    --board-border: #4d2f16;
+    --board-shadow: rgba(0, 0, 0, 0.5);
+    
+    /* Chalk colors */
+    --chalk-white: rgba(255, 255, 255, 0.85);
+    --chalk-white-glow: rgba(255, 255, 255, 0.15);
+    --chalk-yellow: #fdf5b7;
+    --chalk-yellow-glow: rgba(253, 245, 183, 0.3);
+    --chalk-pink: #ffb7d5;
+    --chalk-pink-glow: rgba(255, 183, 213, 0.3);
+    --chalk-cyan: #b7f3ff;
+    --chalk-cyan-glow: rgba(183, 243, 255, 0.3);
+    --chalk-orange: #ffd0b7;
+    --chalk-orange-glow: rgba(255, 208, 183, 0.3);
+    
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    
+    /* Chalk typography */
+    --font-chalk: 'Single Day', 'Noto Sans KR', sans-serif;
+    --desk-border: 2px dashed rgba(255, 255, 255, 0.25);
+    --desk-bg: rgba(255, 255, 255, 0.02);
+}
 
-        <!-- Header Area -->
-        <header class="app-header">
-            <div class="logo-badge">🧹 PREMIUM CLEANING SYSTEM</div>
-            <h1 class="gradient-title">청소당번 룰렛 뽑기</h1>
-            <p class="subtitle">1명부터 30명 중 공정하게 5명의 청소 당번을 선출합니다.</p>
-        </header>
+/* 2. Cyber Neon Theme Variables */
+.cyber-theme {
+    --bg-primary: #07080c;
+    --bg-panel: rgba(15, 18, 30, 0.8);
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --board-bg: radial-gradient(circle, #0e111d 0%, #06070a 100%);
+    --board-border: rgba(255, 255, 255, 0.05);
+    --board-shadow: rgba(0, 240, 255, 0.1);
+    
+    /* Cyber neon colors */
+    --chalk-white: #00f0ff; /* cyan */
+    --chalk-white-glow: rgba(0, 240, 255, 0.3);
+    --chalk-yellow: #ffd700; /* gold */
+    --chalk-yellow-glow: rgba(255, 215, 0, 0.35);
+    --chalk-pink: #ff007a; /* neon pink */
+    --chalk-pink-glow: rgba(255, 0, 122, 0.35);
+    --chalk-cyan: #bd00ff; /* purple */
+    --chalk-cyan-glow: rgba(189, 0, 255, 0.35);
+    --chalk-orange: #39ff14; /* neon green */
+    --chalk-orange-glow: rgba(57, 255, 20, 0.4);
+    
+    --text-main: #f1f5f9;
+    --text-muted: #64748b;
+    
+    --font-chalk: 'Outfit', 'Noto Sans KR', sans-serif;
+    --desk-border: 1.5px solid rgba(255, 255, 255, 0.06);
+    --desk-bg: rgba(255, 255, 255, 0.01);
+}
 
-        <!-- Main Workspace -->
-        <main class="app-main">
-            <!-- Sidebar: Candidate Manager -->
-            <section class="panel glass candidate-panel">
-                <div class="panel-header">
-                    <h2>🎯 대상자 관리 (1~30명)</h2>
-                    <div class="quick-actions">
-                        <button id="btn-select-all" class="text-btn">전체 선택</button>
-                        <button id="btn-deselect-all" class="text-btn">전체 해제</button>
-                        <button id="btn-reset-names" class="text-btn">이름 초기화</button>
-                    </div>
-                </div>
+/* --- Base styles --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-                <div class="panel-body">
-                    <!-- Config Controls -->
-                    <div class="config-row">
-                        <div class="config-group">
-                            <label for="input-winner-count">선출할 당번 수 (명)</label>
-                            <div class="number-input-wrapper">
-                                <button type="button" class="num-btn" id="btn-dec">-</button>
-                                <input type="number" id="input-winner-count" min="1" max="15" value="5" readonly>
-                                <button type="button" class="num-btn" id="btn-inc">+</button>
-                            </div>
-                        </div>
-                    </div>
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    transition: background-color 0.5s ease;
+}
 
-                    <!-- Participant List Grid -->
-                    <div class="participant-grid" id="participant-list">
-                        <!-- Filled dynamically by JavaScript -->
-                    </div>
-                </div>
-            </section>
+/* Confetti Background canvas */
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 99;
+    pointer-events: none;
+}
 
-            <!-- Center Panel: The Lottery Board -->
-            <section class="lottery-board">
-                <!-- Status Indicators -->
-                <div class="status-bar">
-                    <span class="active-count-badge">참가 대상: <strong id="active-count">30</strong>명</span>
-                    <!-- Sound Toggle -->
-                    <button id="btn-sound-toggle" class="sound-toggle active" aria-label="Toggle Sound">
-                        <svg class="icon-sound-on" viewBox="0 0 24 24" width="20" height="20">
-                            <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
-                        </svg>
-                        <svg class="icon-sound-off" viewBox="0 0 24 24" width="20" height="20" style="display: none;">
-                            <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.43 14,18.7V20.77C15.38,20.44 16.63,19.78 17.7,18.9L20.73,21.93L22,20.66L4.27,3M19,12C19,12.94 18.8,13.82 18.46,14.64L19.97,16.15C20.62,14.91 21,13.5 21,12C21,7.72 18.07,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.48,12.43 16.5,12.22 16.5,12Z" />
-                        </svg>
-                        <span>소리 켬</span>
-                    </</button>
-                </div>
+/* Main Container Wrapper */
+.app-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 100vh;
+}
 
-                <!-- Display slots where winners will be shown -->
-                <div class="slots-container" id="slots-container">
-                    <!-- Generated dynamically based on winner count, initially 5 -->
-                </div>
+/* Header Component */
+.app-header {
+    text-align: center;
+    padding-bottom: 0.5rem;
+}
 
-                <!-- Control Buttons -->
-                <div class="control-actions">
-                    <button id="btn-draw" class="primary-btn glow-btn">
-                        <span class="btn-ripple"></span>
-                        <span class="btn-text">🧹 당번 추첨 시작!</span>
-                    </button>
-                    <button id="btn-reset-draw" class="secondary-btn">초기화</button>
-                </div>
-            </section>
+.header-logo {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--chalk-white);
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 10px var(--chalk-white-glow);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 
-            <!-- Bottom/Right Panel: History & Stats -->
-            <section class="panel glass history-panel">
-                <div class="panel-header">
-                    <h2>📋 추첨 히스토리</h2>
-                    <div class="quick-actions">
-                        <button id="btn-clear-history" class="text-btn danger-text">전체 삭제</button>
-                    </div>
-                </div>
-                <div class="panel-body history-body">
-                    <div class="history-list" id="history-list">
-                        <!-- History items filled by JS -->
-                        <div class="empty-state">
-                            <span class="empty-icon">⏳</span>
-                            <p>아직 진행된 추첨이 없습니다.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+.header-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #fff 30%, var(--chalk-white) 90%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.4rem;
+}
 
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>&copy; 2026 Premium Cleaning Roulette. All rights reserved. Designed for Visual Excellence.</p>
-        </footer>
-    </div>
+.header-subtitle {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
 
-    <!-- Notification Toast -->
-    <div id="toast" class="toast"></div>
+/* --- Layout Grid Workspace --- */
+.workspace {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 2rem;
+    align-items: stretch;
+    flex: 1;
+}
 
-    <!-- Main JavaScript File -->
-    <script src="app.js"></script>
-</body>
-</html>
+/* Glassmorphism Configuration Panel */
+.panel {
+    background-color: var(--bg-panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+}
+
+.panel:hover {
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+}
+
+.panel-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.panel-header h2 {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.panel-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+/* Custom Settings styling */
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.setting-group.flex-fill {
+    flex: 1;
+    display: flex;
+}
+
+.setting-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+/* Grid controls & stepper */
+.grid-controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.control-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.control-item span {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.number-stepper {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    height: 38px;
+    transition: var(--transition-fast);
+}
+
+.number-stepper:focus-within {
+    border-color: var(--chalk-white);
+    box-shadow: 0 0 10px var(--chalk-white-glow);
+}
+
+.number-stepper input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: white;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.number-stepper input::-webkit-outer-spin-button,
+.number-stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.step-btn {
+    width: 38px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.step-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Layout selection modes */
+.layout-modes {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mode-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--border-radius-md);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.6rem 0;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.mode-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.mode-btn.active {
+    color: var(--bg-primary);
+    background-color: var(--chalk-white);
+    border-color: var(--chalk-white);
+    box-shadow: 0 0 12px var(--chalk-white-glow);
+}
+
+.mode-tip {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    padding: 0.2rem;
+}
+
+/* Textarea Notepad styling */
+.textarea-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#student-names-area {
+    width: 100%;
+    height: 160px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--border-radius-md);
+    color: white;
+    padding: 0.8rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: none;
+    outline: none;
+    transition: var(--transition-fast);
+}
+
+#student-names-area:focus {
+    border-color: var(--chalk-white);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3), 0 0 10px var(--chalk-white-glow);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Quick Action Text Buttons */
+.text-btn {
+    background: none;
+    border: none;
+    color: var(--chalk-white);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.text-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    text-shadow: 0 0 5px var(--chalk-white-glow);
+}
+
+/* Options selectors */
+.options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 1rem;
+}
+
+.option-toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.option-toggle-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+#theme-select {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: white;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-md);
+    outline: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: var(--transition-fast);
+}
+
+#theme-select:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Sound Button Toggle */
+.sound-toggle {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    height: 38px;
+    transition: var(--transition-fast);
+}
+
+.sound-toggle:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sound-toggle.active {
+    border-color: rgba(0, 240, 255, 0.2);
+    color: var(--chalk-white);
+    background: rgba(0, 240, 255, 0.05);
+    text-shadow: 0 0 6px var(--chalk-white-glow);
+}
+
+/* --- Classroom Blackboard Drawing Frame --- */
+.classroom-board {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    justify-content: stretch;
+}
+
+.chalkboard-frame {
+    flex: 1;
+    background: var(--board-bg);
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.8);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 520px;
+    transition: var(--transition-smooth);
+}
+
+/* Blackboard Wood Framing (Only for chalkboard theme) */
+.chalkboard-theme .chalkboard-frame {
+    border: 14px solid var(--board-border);
+    box-shadow: 
+        0 15px 40px var(--board-shadow), 
+        inset 0 0 40px rgba(0,0,0,0.9),
+        0 0 0 3px rgba(0, 0, 0, 0.8),
+        0 8px 15px rgba(0,0,0,0.6);
+}
+
+.cyber-theme .chalkboard-frame {
+    border: 2px solid var(--board-border);
+    box-shadow: 0 0 30px var(--board-shadow);
+}
+
+/* Chalk dust effect overlay in chalkboard theme */
+.chalkboard-theme .chalkboard-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.02) 20%, transparent 80%),
+        radial-gradient(rgba(255, 255, 255, 0.01) 10%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Teacher Pod & Blackboard Header */
+.blackboard-header {
+    position: relative;
+    z-index: 3;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chalkboard-theme .blackboard-header {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.blackboard-speaker {
+    font-family: var(--font-chalk);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--chalk-white);
+    text-shadow: 0 0 8px var(--chalk-white-glow);
+    letter-spacing: 0.05em;
+}
+
+.blackboard-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.info-tag {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.35rem 0.8rem;
+    border-radius: 50px;
+}
+
+.info-tag strong {
+    color: var(--chalk-white);
+    font-weight: 700;
+}
+
+/* Desks Grid Board */
+.desks-grid {
+    display: grid;
+    gap: 1.2rem;
+    padding: 2rem;
+    flex: 1;
+    align-content: start;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    /* Calculated columns defined dynamically in Javascript via inline styles e.g. --cols */
+    grid-template-columns: repeat(var(--cols, 6), 1fr);
+    grid-template-rows: repeat(var(--rows, 5), 1fr);
+}
+
+/* Desk Card Flip structure */
+.desk-card {
+    height: 85px;
+    perspective: 1000px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.desk-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Flip state */
+.desk-card.is-flipped .desk-card-inner {
+    transform: rotateY(180deg);
+}
+
+.desk-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+    transition: var(--transition-fast);
+}
+
+/* Desk Front side (Hidden/Placeholder) */
+.desk-front {
+    background-color: var(--desk-bg);
+    border: var(--desk-border);
+    color: var(--text-muted);
+}
+
+.desk-card:hover .desk-front {
+    border-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.desk-front-index {
+    font-size: 0.7rem;
+    font-family: var(--font-chalk);
+    opacity: 0.5;
+    margin-bottom: 0.2rem;
+}
+
+.desk-front-symbol {
+    font-family: var(--font-chalk);
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+/* Desk Back side (Flipped / Revealed name) */
+.desk-back {
+    transform: rotateY(180deg);
+    border: 2px solid var(--chalk-white);
+    background-color: rgba(255, 255, 255, 0.03);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.chalkboard-theme .desk-back {
+    border-color: var(--chalk-white);
+    box-shadow: 0 4px 12px var(--chalk-white-glow), inset 0 0 10px var(--chalk-white-glow);
+}
+
+.cyber-theme .desk-back {
+    border-color: var(--chalk-white);
+    box-shadow: 0 0 15px var(--chalk-white-glow);
+}
+
+.desk-student-name {
+    font-family: var(--font-chalk);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    word-break: break-all;
+    text-align: center;
+}
+
+.desk-back-index {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+    font-family: var(--font-chalk);
+}
+
+/* Desk States styling */
+/* 1. Blocked Corridor */
+.desk-card.blocked {
+    cursor: default;
+    pointer-events: auto; /* Allow click to toggle blocked off */
+}
+
+.desk-card.blocked .desk-front {
+    border: 1.5px solid rgba(255, 255, 255, 0.04) !important;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.02),
+        rgba(255, 255, 255, 0.02) 8px,
+        rgba(255, 255, 255, 0.04) 8px,
+        rgba(255, 255, 255, 0.04) 16px
+    ) !important;
+    color: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+}
+
+.desk-card.blocked .desk-front-symbol {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+/* 2. Locked Desk */
+.desk-card.locked .desk-back {
+    border-color: var(--chalk-yellow);
+    box-shadow: 0 4px 15px var(--chalk-yellow-glow), inset 0 0 12px var(--chalk-yellow-glow);
+}
+
+.cyber-theme .desk-card.locked .desk-back {
+    box-shadow: 0 0 15px var(--chalk-yellow-glow);
+}
+
+.desk-card.locked .desk-student-name {
+    color: var(--chalk-yellow);
+    text-shadow: 0 0 8px var(--chalk-yellow-glow);
+}
+
+/* Lock badge icon overlay */
+.desk-lock-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.65rem;
+    color: var(--chalk-yellow);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: var(--transition-fast);
+    z-index: 10;
+}
+
+.desk-card.locked .desk-lock-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Hovering Lock trigger overlay button */
+.desk-lock-trigger {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: white;
+    opacity: 0;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    z-index: 11;
+}
+
+.desk-card:hover .desk-lock-trigger {
+    opacity: 0.6;
+}
+
+.desk-card:hover .desk-lock-trigger:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.desk-card.locked:hover .desk-lock-trigger {
+    color: var(--chalk-yellow);
+}
+
+/* 3. Drag and Drop states */
+.desk-card.dragging {
+    opacity: 0.4;
+}
+
+.desk-card.drag-over .desk-back {
+    border-color: var(--chalk-pink);
+    transform: rotateY(180deg) scale(1.05);
+    box-shadow: 0 0 20px var(--chalk-pink-glow);
+}
+
+/* 4. Vacant Empty Seat */
+.desk-card.vacant .desk-back {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+}
+
+.desk-card.vacant .desk-student-name {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-shadow: none;
+}
+
+/* Shuffling spinning animation classes */
+.desk-card.shuffling .desk-front {
+    border-color: var(--chalk-pink);
+    color: var(--chalk-pink);
+    animation: border-spark 0.3s infinite alternate;
+}
+
+@keyframes border-spark {
+    0% { border-color: rgba(255, 183, 213, 0.4); box-shadow: 0 0 5px var(--chalk-pink-glow); }
+    100% { border-color: var(--chalk-pink); box-shadow: 0 0 15px var(--chalk-pink-glow); }
+}
+
+/* --- Control Action Buttons Bar --- */
+.board-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Primary Draw Button */
+.primary-btn {
+    background: linear-gradient(135deg, var(--chalk-white) 0%, var(--chalk-cyan) 100%);
+    border: none;
+    color: var(--bg-primary);
+    padding: 1.1rem 2.5rem;
+    border-radius: var(--border-radius-lg);
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 20px var(--chalk-white-glow);
+    transition: var(--transition-smooth);
+}
+
+.primary-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 30px var(--chalk-white-glow);
+}
+
+.primary-btn:active {
+    transform: translateY(0);
+}
+
+.primary-btn.glow-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.primary-btn:hover::before {
+    left: 100%;
+    transition: 0.8s;
+}
+
+.btn-ripple {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.btn-text {
+    position: relative;
+    z-index: 3;
+}
+
+.secondary-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    padding: 1.05rem 1.6rem;
+    border-radius: var(--border-radius-lg);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition-fast);
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.success-btn {
+    border-color: rgba(57, 255, 20, 0.2);
+    color: #e2fce2;
+}
+
+.success-btn:hover {
+    background: rgba(57, 255, 20, 0.08);
+    border-color: rgba(57, 255, 20, 0.4);
+}
+
+/* --- Toast Messages --- */
+.toast {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18, 22, 28, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    padding: 0.9rem 1.8rem;
+    border-radius: 50px;
+    z-index: 1000;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.toast.show {
+    top: 24px;
+}
+
+.toast::before {
+    content: '⚡';
+    color: var(--chalk-white);
+}
+
+/* --- Footer --- */
+.app-footer {
+    text-align: center;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+
+/* --- PRINT STYLE OPTIMIZATION (🖨️) --- */
+@media print {
+    body {
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    #confetti-canvas,
+    .app-header,
+    .config-panel,
+    .board-actions,
+    .app-footer,
+    .toast,
+    .desk-lock-trigger {
+        display: none !important;
+    }
+    
+    .app-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+    
+    .workspace {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+    }
+    
+    .classroom-board {
+        padding: 0 !important;
+    }
+    
+    .chalkboard-frame {
+        background: white !important;
+        border: none !important;
+        box-shadow: none !important;
+        min-height: auto !important;
+    }
+    
+    .blackboard-header {
+        border-bottom: 2px solid #333 !important;
+        padding: 1rem 0 !important;
+    }
+    
+    .blackboard-speaker {
+        color: black !important;
+        text-shadow: none !important;
+        font-size: 1.8rem !important;
+    }
+    
+    .blackboard-info {
+        display: none !important;
+    }
+    
+    .desks-grid {
+        padding: 2rem 0 !important;
+        gap: 1.5cm !important;
+        /* Columns are scaled for landscape printed page */
+    }
+    
+    .desk-card {
+        height: 2.2cm !important;
+    }
+    
+    .desk-card-inner {
+        transform: rotateY(180deg) !important; /* Force all flipped open */
+    }
+    
+    .desk-face {
+        border-radius: 4px !important;
+    }
+    
+    .desk-back {
+        border: 2px solid #000 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+    }
+    
+    .desk-student-name {
+        color: #000 !important;
+        text-shadow: none !important;
+        font-size: 1.4rem !important;
+        font-weight: bold !important;
+    }
+    
+    .desk-back-index {
+        color: #444 !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .desk-card.blocked .desk-front {
+        border: 1px dashed #999 !important;
+        background: white !important;
+        color: #999 !important;
+    }
+    
+    .desk-card.locked .desk-back {
+        border: 3px double #000 !important;
+    }
+    
+    .desk-card.locked .desk-student-name::after {
+        content: ' (고정)' !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .desk-lock-badge {
+        display: none !important;
+    }
+}
+
+/* --- Responsive Layout adjustments --- */
+@media (max-width: 1200px) {
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+    .config-panel {
+        max-height: auto;
+    }
+    .chalkboard-frame {
+        min-height: 480px;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+    .header-title {
+        font-size: 1.8rem;
+    }
+    .desks-grid {
+        padding: 1rem;
+        gap: 0.6rem;
+    }
+    .desk-card {
+        height: 70px;
+    }
+    .desk-student-name {
+        font-size: 0.95rem;
+    }
+    .board-actions {
+        flex-wrap: wrap;
+    }
+    .primary-btn {
+        width: 100%;
+        padding: 1rem;
+    }
+    .secondary-btn {
+        flex: 1;
+        padding: 1rem 0.5rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}
